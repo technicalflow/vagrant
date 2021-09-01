@@ -1,0 +1,197 @@
+---
+- hosts: all
+  become: true
+  handlers:
+    - name: docker status
+      service: name=docker state=started
+  tasks:
+  - name: Upgrade all installed packages for Debian and Ubuntu
+    apt:
+      name: "*"
+      state: latest
+      update_cache: yes
+      force_apt_get: yes
+      autoclean: yes
+      autoremove: yes
+    become: yes
+    when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
+
+  - name: Install packages that allow apt to be used over HTTPS
+    apt:
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+
+  - name: Add an apt signing key for Docker
+    apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      state: present
+
+  - name: Add apt repository for stable version
+    apt_repository:
+      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+      state: present
+
+  - name: Install docker and its dependecies
+    apt: 
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+      - docker-ce 
+      - docker-ce-cli 
+      - containerd.io
+    notify:
+      - docker status
+
+  - name: Add vagrant user to docker group
+    user:
+      name: vagrant
+      group: docker
+  
+  - name: Remove swapfile from /etc/fstab
+    replace:
+      path: /etc/fstab
+      regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+      replace: '# \1'
+  #   mount:
+  #     name: "{{ item }}"
+  #     fstype: swap
+  #     state: absent
+  #   with_items:
+  #     - swap
+  #     - none
+
+
+  - name: Disable swap
+    command: swapoff -a
+    when: ansible_swaptotal_mb > 0
+
+  - name: Add an apt signing key for Kubernetes
+    apt_key:
+      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+      state: present
+
+  - name: Adding apt repository for Kubernetes
+    apt_repository:
+      repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+      state: present
+      filename: kubernetes.list
+
+  - name: Install Kubernetes binaries
+    apt: 
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+        - kubelet=1.19.1-00
+        - kubeadm=1.19.1-00
+        - kubectl=1.19.1-00
+
+  - name: Create file
+    file:
+      path: /etc/default/kubelet
+      state: touch
+      mode: 0644
+      owner: root
+
+  - name: Configure node ip
+    lineinfile:
+      path: /etc/default/kubelet
+      line: KUBELET_EXTRA_ARGS=--node-ip={{ node_ip }}
+
+  - name: Restart kubelet
+    service:
+      name: kubelet
+      daemon_reload: yes
+      state: restarted
+  
+  - name: Initialize the Kubernetes cluster using kubeadm
+    command: kubeadm init --apiserver-advertise-address="192.168.61.10" --apiserver-cert-extra-sans="192.168.61.10"  --node-name k8s-master --pod-network-cidr=192.168.0.0/16
+  
+  - name: Create a directory if it does not exist
+    file:
+      path: /home/vagrant/.kube
+      state: directory
+      mode: '0700'
+      owner: vagrant
+      group: docker
+  
+  # - name: Setup kubeconfig for vagrant user
+  #   command: "{{ item }}"
+  #   with_items:
+  #    - mkdir -p /home/vagrant/.kube
+  #    - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+  #    - chown vagrant:vagrant /home/vagrant/.kube/config
+
+
+  - name: Copy file with owner and permissions
+    copy:
+      src: /etc/kubernetes/admin.conf
+      dest: /home/vagrant/.kube/config
+      remote_src: yes
+      owner: vagrant
+      group: docker
+      
+  - name: Install calico pod network
+    become: false
+    command: kubectl create -f https://docs.projectcalico.org/manifests/calico.yaml
+#    command: kubectl create -f https://docs.projectcalico.org/v3.4/getting-started/kubernetes/installation/hosted/calico.yaml
+
+  - name: Generate join command
+    become: yes
+    shell: "kubeadm token create --print-join-command > /vagrant/join-command"
+    register: join_command
+
+# - name: Copy join command to local file
+#   become: yes
+#   local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="/vagrant/join-command"
+
+# Hardening
+  - name: Check if user exists
+    shell: id -u vagrant
+    register: user_exists
+    ignore_errors: true
+
+  - name: Change Password
+    become: yes
+    user:
+      name: vagrant
+      password: "{{ 'password' 'length=32' | password_hash('sha512') }}"
+      update_password: on_create
+    when: user_exists.rc == 0
+
+  - name: Remove the user 'ubuntu'
+    user:
+      name: ubuntu
+      state: absent
+      remove: yes
+    become: yes
+    when: ansible_distribution == "Ubuntu"
+
+# Restart Server
+
+  - name: Reboot the server
+    tags: reboot
+    run_once: true
+    become: yes
+    shell: "sleep 2 && /sbin/shutdown -r now"
+    async: 1
+    poll: 0
+    ignore_errors: true
+    
+  - name: Wait for the reboot to complete if there was a change.
+    wait_for_connection:
+      connect_timeout: 10
+      sleep: 2
+      delay: 5
+      timeout: 30

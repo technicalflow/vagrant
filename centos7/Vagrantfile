@@ -1,0 +1,118 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+manager_hostname = "msvcentos7"
+image_name = "centos/7"
+
+Vagrant.configure("2") do |config|
+    config.vm.provider "virtualbox" do |v|
+        v.customize ["modifyvm", :id, "--audio", "none"]
+        v.customize ["modifyvm", :id, "--boot1", "disk"]
+        v.customize ["modifyvm", :id, "--boot2", "none"]
+        v.customize ["modifyvm", :id, "--boot3", "none"]
+        v.customize ["modifyvm", :id, "--graphicscontroller", "none"]
+        v.memory = 1024
+        v.cpus = 2
+        v.name = "#{manager_hostname}"
+    end
+    config.vm.define "centos" do |i|
+      i.vm.box = "#{image_name}"
+      i.vm.hostname = "#{manager_hostname}"
+      i.vm.box_check_update = false
+#      i.vm.base_mac = "mac_address" 
+#      i.ssh.username = "ssh_user" 
+#      i.ssh.password = "ssh_password"
+#      i.vm.network "public_network", bridge: "enp0s10", ip: "192.168.50.50", auto_config: true ###FOR LINUX EXTERNAL NETWORK
+      i.vm.network "public_network", bridge: "en0: Wi-Fi (Wireless)", ip: "192.168.50.50", auto_config: true ###FOR MAC EXTERNAL NETWORK     
+#      i.vm.network "private_network", ip: "192.168.80.2" ###FOR Private Network
+#      i.vm.network "forwarded_port", guest: 80, host: 80
+#      i.vm.network "forwarded_port", guest: 443, host: 443 
+
+      if File.file?("./hosts") 
+        i.vm.provision "file", source: "hosts", destination: "/tmp/hosts"
+        i.vm.provision "shell", inline: "cat /tmp/hosts >> /etc/hosts", privileged: true
+      end
+
+#      i.vbguest.auto_update = false #enable to not install latest virtualbox agent
+      i.vm.provision "shell", inline: "mkdir -p /home/vagrant/.ssh/"
+      i.vm.provision "file", source: "../ansible/ansible.pub", destination: "/home/vagrant/.ssh/ansible.pub"
+      i.vm.provision "shell", inline: "cat /home/vagrant/.ssh/ansible.pub >> /home/vagrant/.ssh/authorized_keys"
+
+      i.vm.provvision "shell", path: "./provision.sh", run: "once"        
+      i.vm.provision :ansible do |ansible|
+        ansible.verbose = "vv"
+#        ansible.extra_vars = { "ansible_python_interpreter" => "/usr/bin/python3" }
+        ansible.playbook = "../ansible/playbook.yml"
+
+      i.vm.provision "shell", run: "once", inline: <<-SHELL
+          cat /etc/os-release
+          ip a | grep inet
+      SHELL
+     end
+end
+  # The most common configuration options are documented and commented below.
+  # For a complete reference, please see the online documentation at
+  # https://docs.vagrantup.com.
+
+  # Every Vagrant development environment requires a box. You can search for
+  # boxes at https://vagrantcloud.com/search.
+
+  # Disable automatic box update checking. If you disable this, then
+  # boxes will only be checked for updates when the user runs
+  # `vagrant box outdated`. This is not recommended.
+  # config.vm.box_check_update = false
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine. In the example below,
+  # accessing "localhost:8080" will access port 80 on the guest machine.
+  # NOTE: This will enable public access to the opened port
+  # config.vm.network "forwarded_port", guest: 80, host: 8080
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine and only allow access
+  # via 127.0.0.1 to disable public access
+  # config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
+
+  # Create a private network, which allows host-only access to the machine
+  # using a specific IP.
+  # config.vm.network "private_network", ip: "192.168.33.10"
+
+  # Create a public network, which generally matched to bridged network.
+  # Bridged networks make the machine appear as another physical device on
+  # your network.
+  # config.vm.network "public_network"
+
+  # Share an additional folder to the guest VM. The first argument is
+  # the path on the host to the actual folder. The second argument is
+  # the path on the guest to mount the folder. And the optional third
+  # argument is a set of non-required options.
+  # config.vm.synced_folder "../data", "/vagrant_data"
+
+  # Provider-specific configuration so you can fine-tune various
+  # backing providers for Vagrant. These expose provider-specific options.
+  # Example for VirtualBox:
+  #
+  # config.vm.provider "virtualbox" do |vb|
+  #   # Display the VirtualBox GUI when booting the machine
+  #   vb.gui = true
+  #
+  #   # Customize the amount of memory on the VM:
+  #   vb.memory = "1024"
+  # end
+  #
+  # View the documentation for the provider you are using for more
+  # information on available options.
+
+  # Enable provisioning with a shell script. Additional provisioners such as
+  # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
+  # documentation for more information about their specific syntax and use.
+  # config.vm.provision "shell", inline: <<-SHELL
+  #   apt-get update
+  #   apt-get install -y apache2
+  # SHELL
+    end
+

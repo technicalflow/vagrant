@@ -1,0 +1,70 @@
+IMAGE_NAME = "ubuntu/bionic64"
+N = 2
+
+Vagrant.configure("2") do |config|
+    config.ssh.insert_key = false
+
+    config.vm.provider "virtualbox" do |v|
+        v.memory = 2048
+        v.cpus = 2
+        v.customize ["modifyvm", :id, "--audio", "none"]
+        v.customize ["modifyvm", :id, "--boot1", "disk"]
+        v.customize ["modifyvm", :id, "--boot2", "none"]
+        v.customize ["modifyvm", :id, "--boot3", "none"]
+        v.customize ["modifyvm", :id, "--graphicscontroller", "none"]
+    end
+      
+    config.vm.define "k8s-master" do |master|
+        master.vm.box = IMAGE_NAME
+#        master.vm.network "public_network", bridge: "enp0s10", ip: "192.168.50.58", auto_config: true ###FOR LINUX EXTERNAL NETWORK
+        master.vm.network "public_network", bridge: "en0: Wi-Fi (Wireless)", ip: "192.168.50.58", auto_config: true ###FOR MAC EXTERNAL NETWORK   
+
+        master.vm.network "private_network", ip: "192.168.61.10"
+        master.vm.network "forwarded_port", guest: 8001, host: 8001
+        master.vm.hostname = "k8s-master"
+        master.vm.provision "shell", path: "./provision.sh", run: "once"
+        if File.file?("./hosts") 
+            master.vm.provision "file", source: "hosts", destination: "/tmp/hosts"
+            master.vm.provision "shell", inline: "cat /tmp/hosts >> /etc/hosts", privileged: true
+        end
+        master.vm.provision "shell", inline: "mkdir -p /home/vagrant/.ssh/"
+        master.vm.provision "file", source: "../ansible/ansible.pub", destination: "/home/vagrant/.ssh/ansible.pub"
+        master.vm.provision "shell", inline: "cat /home/vagrant/.ssh/ansible.pub >> /home/vagrant/.ssh/authorized_keys"
+        
+        master.vm.provision "ansible" do |ansible|
+            ansible.playbook = "playbook.yml"
+            ansible.verbose = "vvv"
+            ansible.extra_vars = {
+                node_ip: "192.168.61.10",
+            }
+        end
+    end
+
+    (1..N).each do |i|
+        config.vm.define "node-#{i}" do |node|
+            node.vm.provider "virtualbox" do |vb|
+              vb.customize ["modifyvm", :id, "--audio", "none"]
+              vb.customize ["modifyvm", :id, "--boot1", "disk"]
+              vb.customize ["modifyvm", :id, "--boot2", "none"]
+              vb.customize ["modifyvm", :id, "--boot3", "none"]
+              vb.customize ["modifyvm", :id, "--graphicscontroller", "none"]
+              vb.memory = 1024
+              vb.cpus = 2
+            end
+            node.vm.box = IMAGE_NAME
+            node.vm.network "private_network", ip: "192.168.61.#{i + 10}"
+            node.vm.hostname = "node-#{i}"
+            node.vm.provision "shell", path: "./provision.sh", run: "once"
+            if File.file?("./hosts") 
+                node.vm.provision "file", source: "hosts", destination: "/tmp/hosts"
+                node.vm.provision "shell", inline: "cat /tmp/hosts >> /etc/hosts", privileged: true
+            end
+            node.vm.provision "ansible" do |ansible|
+                ansible.playbook = "node-playbook.yml"
+                ansible.extra_vars = {
+                    node_ip: "192.168.61.#{i + 10}",
+                }
+            end
+        end
+    end
+end

@@ -1,0 +1,4 @@
+# Add any directories, files, or patterns you don't want to be tracked by version control
+.vagrant
+ubuntu-bionic-18.04-cloudimg-console.log
+join-command
