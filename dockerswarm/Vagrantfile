@@ -39,10 +39,10 @@ File.open("./hosts", 'w') { |file|
 #         https_proxy = ENV['https_proxy']
 # end
 
-no_proxy = "localhost,127.0.0.1,#{manager_ip}"
-instances.each do |instance|
-    no_proxy += ",#{instance[:ip]}"
-end
+# no_proxy = "localhost,127.0.0.1,#{manager_ip}"
+# instances.each do |instance|
+#     no_proxy += ",#{instance[:ip]}"
+# end
 
 Vagrant.configure("2") do |config|
   config.vm.define "dsm" do |i| 
