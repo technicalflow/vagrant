@@ -15,7 +15,8 @@
 <b>vboxga</b> - Old VirtualBox additions<br>
 <br>
 Notes:<br>
-    * All environemnts tested on Ubuntu Linux and MacOS with Virtualbox<br>
+    * Requirements: Virtualbox, Vagrant, Ansible
+    * All environments tested on Ubuntu Linux and MacOS with Virtualbox<br>
     * Recommending installing Virtualbox Additions Vagrant plugin: 
      <i>vagrant plugin install vagrant-vbguest</i><br>
-     and enabling option <i>i.vbguest.auto_update = true </i> to auto update guest additions
+     and enabling option:  <i>i.vbguest.auto_update = true </i> to auto update guest additions
