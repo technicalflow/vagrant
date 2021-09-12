@@ -10,12 +10,12 @@
 <b>dockerswarm</b> - Fully automated installation of Docker on three Ubuntu 18.04 nodes with Swarm mode<br>
 <b>freebsd</b> - Provisioned clean and fast FreeBSD 11<br>
 <b>kubernetes</b> - Fully automated installation of three node K8S 1.19.1 Cluster using Ansible based on Ubuntu 18.04<br>
-<b>lxd</b> - Installation of the latest LXD on three Ubuntu 20.04 nodes (currently has some issues with folder mounting)<br>
-<b>ubuntu</b> - Provisioned clean and fast Ubuntu 20.04 (currently has some issues with folder mounting)<br>
+<b>lxd</b> - Installation of the latest LXD on two Ubuntu 20.04 nodes<br>
+<b>ubuntu</b> - Provisioned clean and fast Ubuntu 20.04<br>
 <b>vboxga</b> - Old VirtualBox additions<br>
 <br>
 Notes:<br>
-    * Requirements: Virtualbox, Vagrant, Ansible
+    * Requirements: Virtualbox, Vagrant, Ansible <br>
     * All environments tested on Ubuntu Linux and MacOS with Virtualbox<br>
     * Recommending installing Virtualbox Additions Vagrant plugin: 
      <i>vagrant plugin install vagrant-vbguest</i><br>
