@@ -1,0 +1,59 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+VAGRANTFILE_API_VERSION = "2"
+
+hostname = "OracleLinux8"
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "oraclelinux/8"
+  config.vm.box_url = "https://oracle.github.io/vagrant-projects/boxes/oraclelinux/8.json"
+#  config.vm.hostname
+
+  config.vm.network "public_network", bridge: "en0: Wi-Fi (Wireless)", ip: "192.168.50.51", auto_config: true
+
+  config.vm.provider "virtualbox" do |v|
+    v.customize ["modifyvm", :id, "--audio", "none"]
+    v.customize ["modifyvm", :id, "--boot1", "disk"]
+    v.customize ["modifyvm", :id, "--boot2", "none"]
+    v.customize ["modifyvm", :id, "--boot3", "none"]
+    v.customize ["modifyvm", :id, "--graphicscontroller", "none"]
+    v.memory = 2048
+    v.cpus = 2
+    v.name = "#{hostname}"
+  end
+
+  config.vm.box_check_update = false
+
+  config.vm.provision "shell", inline: "mkdir -p /home/vagrant/.ssh/"
+  config.vm.provision "file", source: "../ansible/ansible.pub", destination: "/home/vagrant/.ssh/ansible.pub"
+  config.vm.provision "shell", inline: "cat /home/vagrant/.ssh/ansible.pub >> /home/vagrant/.ssh/authorized_keys"
+
+  config.vm.provision "shell", path: "./provision.sh", run: "once"        
+
+  config.vm.provision :ansible do |ansible|
+    ansible.verbose = "v"
+  # ansible.extra_vars = { "ansible_python_interpreter" => "/usr/bin/python2" }
+    ansible.playbook = "../ansible/playbook.yml"
+  end
+
+# Install Containers
+  config.vm.provision "shell", inline: <<-SHELL
+    dnf -y module install container-tools:ol8
+  SHELL
+
+#  config.vm.provision "shell", run: "once", privileged: true, inline: <<-SHELL
+#    sudo useradd -m -s /bin/bash -U #{user}
+#         sudo mkdir /home/#{user}/.ssh
+#         sudo cp #{guest_sshkeys} /home/#{user}/.ssh/authorized_keys
+#    sudo chown -R #{user}:#{user} /home/#{user}
+#    sudo su
+#    echo "%#{user} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/#{user}
+#    exit
+#  SHELL
+ 
+   config.vm.provision "shell", run: "once", inline: <<-SHELL
+      cat /etc/os-release | grep PRETTY
+      ip a | grep -w inet
+   SHELL
+
+end
