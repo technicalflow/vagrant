@@ -20,6 +20,7 @@ sudo apt-get install -y \
     make \
     perl \
     curl \
+    ntp \
     ca-certificates \
     apt-transport-https
 
