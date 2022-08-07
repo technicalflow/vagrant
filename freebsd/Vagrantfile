@@ -5,7 +5,7 @@
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
-manager_hostname = "freebsd11"
+manager_hostname = "freebsd12"
 
 Vagrant.configure("2") do |config|
     config.vm.provider "virtualbox" do |v|
@@ -18,8 +18,8 @@ Vagrant.configure("2") do |config|
         v.cpus = 2
         v.name = "#{manager_hostname}"
     end
-    config.vm.define "freebsd11" do |i|
-      i.vm.box = "generic/freebsd11"
+    config.vm.define "freebsd12" do |i|
+      i.vm.box = "generic/freebsd12"
       i.vm.hostname = "#{manager_hostname}"
 #      i.vm.base_mac = "mac_address" 
 #      i.ssh.username = "ssh_user" 
