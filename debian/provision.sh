@@ -1,11 +1,9 @@
 #!/bin/bash
 export DEBIAN_FRONTEND=noninteractive
 
-#!/usr/bin/env bash
-
 # disabled becouse of ansible provisioning
-sudo apt-get update
-sudo apt-get -y upgrade
+# sudo apt-get update
+# sudo apt-get -y upgrade
 
 export LANGUAGE=en_US.UTF-8
 export LANG=en_US.UTF-8

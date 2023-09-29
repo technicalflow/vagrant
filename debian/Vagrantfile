@@ -5,10 +5,10 @@
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
-manager_hostname = "debian9"
-user = "vadmin"
+manager_hostname = "debian11"
+user = "vmadmin"
 guest_sshkeys = "~/.ssh/ansible.pub"
-image_name = "debian/stretch64"
+image_name = "generic/debian11"
 
 Vagrant.configure("2") do |config|
     config.vm.provider "virtualbox" do |v|
@@ -16,12 +16,14 @@ Vagrant.configure("2") do |config|
         v.customize ["modifyvm", :id, "--boot1", "disk"]
         v.customize ["modifyvm", :id, "--boot2", "none"]
         v.customize ["modifyvm", :id, "--boot3", "none"]
+        v.customize ["modifyvm", :id, "--vram",  "16"]
         v.customize ["modifyvm", :id, "--graphicscontroller", "none"]
+        v.customize ["modifyvm", :id, "--vrde",  "off"]
         v.memory = 512
         v.cpus = 2
         v.name = "#{manager_hostname}"
     end
-    config.vm.define "debian9" do |i|
+    config.vm.define "debian11" do |i|
       i.vm.box = "#{image_name}"
       i.vm.hostname = "#{manager_hostname}"
 #      i.ssh.insert_key = false
@@ -30,7 +32,7 @@ Vagrant.configure("2") do |config|
 #      i.ssh.username = "ssh_user" 
 #      i.ssh.password = "ssh_password"
 #      i.vm.network "public_network", bridge: "enp0s10", ip: "192.168.50.53", auto_config: true ###FOR LINUX EXTERNAL NETWORK
-      i.vm.network "public_network", bridge: "en0: Wi-Fi (Wireless)", ip: "192.168.50.53", auto_config: true ###FOR MAC EXTERNAL NETWORK    
+      i.vm.network "public_network", bridge: "en0: Wi-Fi", ip: "192.168.50.53", auto_config: true ###FOR MAC EXTERNAL NETWORK
 
       if File.file?("./hosts") 
         i.vm.provision "file", source: "hosts", destination: "/tmp/hosts"
@@ -49,15 +51,15 @@ Vagrant.configure("2") do |config|
 #       ansible.extra_vars = { "ansible_python_interpreter" => "/usr/bin/python2" }
         ansible.playbook = "../ansible/playbook.yml"
 
-      i.vm.provision "shell", run: "once", privileged: true, inline: <<-SHELL
-          sudo useradd -m -s /bin/bash -U #{user}
+#      i.vm.provision "shell", run: "once", privileged: true, inline: <<-SHELL
+#          sudo useradd -m -s /bin/bash -U #{user}
 #         sudo mkdir /home/#{user}/.ssh
 #         sudo cp #{guest_sshkeys}#{user}_rsa.pub /home/#{user}/.ssh/authorized_keys
-          sudo chown -R #{user}:#{user} /home/#{user}
-          sudo su
-          echo "%#{user} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/#{user}
-          exit
-      SHELL
+#          sudo chown -R #{user}:#{user} /home/#{user}
+#          sudo su
+#          echo "%#{user} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/#{user}
+#          exit
+#      SHELL
 
       i.vm.provision "shell", run: "once", inline: <<-SHELL
           cat /etc/os-release
