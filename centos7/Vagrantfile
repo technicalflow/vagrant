@@ -14,7 +14,9 @@ Vagrant.configure("2") do |config|
         v.customize ["modifyvm", :id, "--boot1", "disk"]
         v.customize ["modifyvm", :id, "--boot2", "none"]
         v.customize ["modifyvm", :id, "--boot3", "none"]
+        v.customize ["modifyvm", :id, "--vram",  "16"]
         v.customize ["modifyvm", :id, "--graphicscontroller", "none"]
+        v.customize ["modifyvm", :id, "--vrde",  "off"]
         v.memory = 1024
         v.cpus = 2
         v.name = "#{manager_hostname}"
@@ -27,7 +29,7 @@ Vagrant.configure("2") do |config|
 #      i.ssh.username = "ssh_user" 
 #      i.ssh.password = "ssh_password"
 #      i.vm.network "public_network", bridge: "enp0s10", ip: "192.168.50.50", auto_config: true ###FOR LINUX EXTERNAL NETWORK
-      i.vm.network "public_network", bridge: "en0: Wi-Fi (Wireless)", ip: "192.168.50.50", auto_config: true ###FOR MAC EXTERNAL NETWORK     
+      i.vm.network "public_network", bridge: "en0: Wi-Fi", ip: "192.168.50.50", auto_config: true ###FOR MAC EXTERNAL NETWORK     
 #      i.vm.network "private_network", ip: "192.168.80.2" ###FOR Private Network
 #      i.vm.network "forwarded_port", guest: 80, host: 80
 #      i.vm.network "forwarded_port", guest: 443, host: 443 

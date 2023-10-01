@@ -19,6 +19,7 @@ sudo apt-get install -y \
     gcc \
     make \
     perl \
+    gnupg \
     curl \
     ntp \
     ca-certificates \

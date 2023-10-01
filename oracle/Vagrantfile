@@ -9,14 +9,16 @@ Vagrant.configure("2") do |config|
   config.vm.box_url = "https://oracle.github.io/vagrant-projects/boxes/oraclelinux/8.json"
 #  config.vm.hostname
 
-  config.vm.network "public_network", bridge: "en0: Wi-Fi (Wireless)", ip: "192.168.50.51", auto_config: true
+  config.vm.network "public_network", bridge: "en0: Wi-Fi", ip: "192.168.50.51", auto_config: true
 
   config.vm.provider "virtualbox" do |v|
     v.customize ["modifyvm", :id, "--audio", "none"]
     v.customize ["modifyvm", :id, "--boot1", "disk"]
     v.customize ["modifyvm", :id, "--boot2", "none"]
     v.customize ["modifyvm", :id, "--boot3", "none"]
+    v.customize ["modifyvm", :id, "--vram",  "16"]
     v.customize ["modifyvm", :id, "--graphicscontroller", "none"]
+    v.customize ["modifyvm", :id, "--vrde",  "off"]
     v.memory = 2048
     v.cpus = 2
     v.name = "#{hostname}"

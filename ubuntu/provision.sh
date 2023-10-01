@@ -1,7 +1,7 @@
 #!/bin/bash
 #!/usr/bin/env bash
 
-# disabled becouse of ansible provisioning
+# disabled because of ansible provisioning
 sudo apt-get update
 sudo apt-get -y upgrade
 

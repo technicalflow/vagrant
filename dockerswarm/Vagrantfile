@@ -51,7 +51,9 @@ Vagrant.configure("2") do |config|
         v.customize ["modifyvm", :id, "--boot1", "disk"]
         v.customize ["modifyvm", :id, "--boot2", "none"]
         v.customize ["modifyvm", :id, "--boot3", "none"]
+        v.customize ["modifyvm", :id, "--vram",  "16"]
         v.customize ["modifyvm", :id, "--graphicscontroller", "none"]
+        v.customize ["modifyvm", :id, "--vrde",  "off"]
         v.memory = vmmemory
         v.cpus = numcpu
         v.name = "#{manager_hostname}"
@@ -61,7 +63,7 @@ Vagrant.configure("2") do |config|
       i.vm.network "private_network", ip: "#{manager_ip}"
 #      i.vm.network "forwarded_port", guest: 80, host: 8092
 #      i.vm.network "public_network", bridge: "enp0s10", ip: "192.168.50.56", auto_config: true ###FOR LINUX EXTERNAL NETWORK
-      i.vm.network "public_network", bridge: "en0: Wi-Fi (Wireless)", ip: "192.168.50.56", auto_config: true ###FOR MAC EXTERNAL NETWORK   
+      i.vm.network "public_network", bridge: "en0: Wi-Fi", ip: "192.168.50.56", auto_config: true ###FOR MAC EXTERNAL NETWORK   
       
 #      i.vm.synced_folder "/home/vadmin/vms/dockerswarm/dsv", "/dsv", owner: "vagrant", group: "vagrant"
 
@@ -90,7 +92,7 @@ Vagrant.configure("2") do |config|
       
       i.vm.provision "shell", path: "./provisionfull.sh", run: "once"
       i.vm.provision "shell", path: "./provisiondockerlink.sh", run: "once"
-      i.vm.provision "shell", inline: "sudo apt install -y --no-install-recommends gnupg pass libice6 libsm6 libxmu6"
+      # i.vm.provision "shell", inline: "sudo apt install -y --no-install-recommends gnupg pass libice6 libsm6 libxmu6"
    
       if auto 
         i.vm.provision "shell", inline: "docker swarm init --advertise-addr #{manager_ip}"
@@ -105,7 +107,9 @@ end
         vb.customize ["modifyvm", :id, "--boot1", "disk"]
         vb.customize ["modifyvm", :id, "--boot2", "none"]
         vb.customize ["modifyvm", :id, "--boot3", "none"]
+        vb.customize ["modifyvm", :id, "--vram",  "16"]
         vb.customize ["modifyvm", :id, "--graphicscontroller", "none"]
+        vb.customize ["modifyvm", :id, "--vrde",  "off"]
         vb.memory = 512
         vb.cpus = 2
         vb.name = "#{instance[:name]}"

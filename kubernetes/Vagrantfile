@@ -11,13 +11,15 @@ Vagrant.configure("2") do |config|
         v.customize ["modifyvm", :id, "--boot1", "disk"]
         v.customize ["modifyvm", :id, "--boot2", "none"]
         v.customize ["modifyvm", :id, "--boot3", "none"]
+        v.customize ["modifyvm", :id, "--vram",  "16"]
         v.customize ["modifyvm", :id, "--graphicscontroller", "none"]
+        v.customize ["modifyvm", :id, "--vrde",  "off"]
     end
       
     config.vm.define "k8s-master" do |master|
         master.vm.box = IMAGE_NAME
 #        master.vm.network "public_network", bridge: "enp0s10", ip: "192.168.50.58", auto_config: true ###FOR LINUX EXTERNAL NETWORK
-        master.vm.network "public_network", bridge: "en0: Wi-Fi (Wireless)", ip: "192.168.50.58", auto_config: true ###FOR MAC EXTERNAL NETWORK   
+        master.vm.network "public_network", bridge: "en0: Wi-Fi", ip: "192.168.50.58", auto_config: true ###FOR MAC EXTERNAL NETWORK   
 
         master.vm.network "private_network", ip: "192.168.61.10"
         master.vm.network "forwarded_port", guest: 8001, host: 8001
@@ -33,7 +35,7 @@ Vagrant.configure("2") do |config|
         
         master.vm.provision "ansible" do |ansible|
             ansible.playbook = "playbook.yml"
-            ansible.verbose = "vvv"
+            ansible.verbose = "vv"
             ansible.extra_vars = {
                 node_ip: "192.168.61.10",
             }
@@ -47,7 +49,9 @@ Vagrant.configure("2") do |config|
               vb.customize ["modifyvm", :id, "--boot1", "disk"]
               vb.customize ["modifyvm", :id, "--boot2", "none"]
               vb.customize ["modifyvm", :id, "--boot3", "none"]
+              vb.customize ["modifyvm", :id, "--vram",  "16"]
               vb.customize ["modifyvm", :id, "--graphicscontroller", "none"]
+              vb.customize ["modifyvm", :id, "--vrde",  "off"]
               vb.memory = 1024
               vb.cpus = 2
             end

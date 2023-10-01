@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# disabled becouse of ansible provisioning
+# disabled because of ansible provisioning
 # sudo apt-get update
 # sudo apt-get -y upgrade
 
@@ -17,6 +17,7 @@ sudo apt-get install -y \
     make \
     perl \
     curl
+    
 #    linux-image-virtual
 #    linux-image-extra-virtual
 # sudo apt-get remove virtualbox-guest-utils -y
