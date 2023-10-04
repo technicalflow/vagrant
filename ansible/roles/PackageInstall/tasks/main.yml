@@ -13,6 +13,12 @@
      become: yes
      when: ansible_distribution == "CentOS"
 
+   - name: Install Packages on Oracle
+     dnf:
+       pkg: ['mc', 'curl', 'htop', 'nano', 'wget']
+     become: yes
+     when: ansible_distribution == "OracleLinux" 
+
 #   - name: Enable EPEL Repository on CentOS 7
 #     yum:
 #       name: epel-release

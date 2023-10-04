@@ -6,7 +6,7 @@
   - PackageInstall
   - Usersconfig
   - RestartMachines
-- hosts: debian10awx
+- hosts: debian11awx
   roles:
   - Hardening
   - CopyConfig
