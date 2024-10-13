@@ -23,6 +23,11 @@ Vagrant.configure("2") do |config|
         v.cpus = 2
         v.name = "#{manager_hostname}"
     end
+# To test
+#     config.vm.boot_timeout = 600
+#     config.vm.base_mac = "02999D56C03"
+#     config.ssh.username = "ubuntuuser"
+#     config.ssh.password = "password"
     config.vm.define "debian11" do |i|
       i.vm.box = "#{image_name}"
       i.vm.hostname = "#{manager_hostname}"
